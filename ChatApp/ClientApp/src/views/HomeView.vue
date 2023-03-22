@@ -1,18 +1,20 @@
 <script setup lang="ts">
 import axios from "axios";
 import { ref, onMounted } from "vue";
+
 import signalR from "../Store/useSignalR";
+import Message from "../components/Message.vue";
 const { online, startUp, sendMessage, events, removeMessage } = signalR();
-const msgs = ref<Message[]>();
+const messages = ref<Message[]>()
 const user = ref();
 
 events.MessageReceived = (e) => {
-  msgs.value!.push(e)
+  messages.value!.push(e)
 };
 events.MessageRemoved = (e) => {
-  const index = msgs.value?.findIndex(x => x.id == e)
+  const index = messages.value?.findIndex(x => x.id == e)
   if (index != undefined)
-    msgs.value?.splice(index, 1);
+    messages.value?.splice(index, 1);
 }
 onMounted(() => {
   startUp();
@@ -21,28 +23,23 @@ onMounted(() => {
 
 await axios.get('/api/FetchUserInfo').then(x => user.value = x.data);
 
-await axios.get('/api/FetchMessages').then(x => msgs.value = x.data as Message[]);
+await axios.get('/api/FetchMessages').then(x => messages.value = x.data as Message[]);
 const tempMsg = ref('');
 const sendMsg = async () => {
   await sendMessage(tempMsg.value)
-  tempMsg.value;
+  tempMsg.value = '';
 }
 const removeMsg = async (id: string) => {
   await removeMessage(id)
 }
-
-// await new Promise<void>(r => setTimeout(() => r(), 30000000));
 </script>
 
 <template>
   <div class="grid">
 
     <div class="msgs-container">
-      <div v-for="msg in msgs" :key="msg.id"><span class="author">{{ msg.author.username }}</span>: <span
-          class="messageContent">{{
-            msg.message }}</span>
-        <button v-if="msg.author.id == user.id" @click="removeMsg(msg.id)">Remove</button>
-      </div>
+      <Message @delete="removeMsg" :msg="msg" :newMsg="index > 0 ? msg.author == messages![index - 1].author! : true"
+        v-for="msg, index in messages" />
 
     </div>
 
@@ -82,7 +79,6 @@ input {
 .msgs-container {
 
 
-  padding: 10px 20px;
   display: flex;
   flex-direction: column;
   gap: 5px;

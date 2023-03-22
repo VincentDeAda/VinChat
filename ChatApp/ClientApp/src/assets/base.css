@@ -2,6 +2,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500&display=swap');
 
 :root {
+  --darker-darker: #1012146e;
   --darker-main: #1c1e238f;
   --main-theme: #1c1e23;
   --lighter-main: #21242a;

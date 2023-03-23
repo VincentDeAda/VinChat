@@ -1,19 +1,22 @@
 <script setup lang="ts">
-import { defineProps, ref, onMounted } from 'vue';
+import { defineProps, ref, computed } from 'vue';
 const emits = defineEmits(['delete', 'edit'])
 const showActions = ref(false)
 
-defineProps<{ msg: Message, newMsg: boolean }>()
+const { isShifting } = defineProps<{ msg: Message, newMsg: boolean, isShifting: boolean }>()
+const isHover = ref(false);
+const show = computed(() => isHover && isShifting);
+
 
 const toggle = ref<HTMLElement>();
 </script>
-<template>
-  <div class="message">
+<template >
+  <div @mouseenter="isHover = true" @mouseleave="isHover = false" class="message">
     <h4 v-if="newMsg">{{ msg.author.username }}:</h4>
     <div class="content">{{ msg.message }}</div>
     <div class="dropdown">
-      <button @click.stop="showActions = !showActions" class="icon">...</button>
-      <div ref="toggle" :class="{ showOptions: showActions }" class="options">
+      <button v-show="isHover && isShifting" @click.stop="showActions = !showActions" class="icon">...</button>
+      <div ref="toggle" :class="{ showOptions: show }" class="options">
         <button @click="emits('delete', msg.id)">Delete</button>
         <button @click="emits('edit')">Edit</button>
       </div>

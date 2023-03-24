@@ -74,14 +74,21 @@ const onScroll = async (e: Event) => {
   if (item.scrollTop < 20)
     await fetchMoreMessages();
 }
+const isNew = (index: number, msg: Message) => {
+
+  if (index == 0)
+    return true;
+
+  return msg.author.id != messages.value[index - 1].author.id;
+}
 </script>
 
 <template>
   <div class="grid">
 
     <div @scroll="onScroll" class="msgs-container" ref="scroll">
-      <Message  :isShifting="shiftKey" :key="msg.id" @delete="removeMsg" :msg="msg"
-        :newMsg="index > 0 ? msg.author == messages![index - 1].author! : true" v-for="msg, index in messages" />
+      <Message :isShifting="shiftKey" :key="msg.id" @delete="removeMsg" :msg="msg" :newMsg="isNew(index, msg)"
+        v-for="msg, index in messages" />
 
     </div>
 

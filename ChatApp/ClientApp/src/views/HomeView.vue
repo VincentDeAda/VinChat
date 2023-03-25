@@ -42,13 +42,14 @@ const watchShiftDown = (e: KeyboardEvent) => {
   }
 }
 const watchShiftUp = (e: KeyboardEvent) => {
-  if (e.shiftKey && !shiftKey.value) {
-    shiftKey.value = true;
+  if (e.key == 'Shift' && shiftKey.value) {
+    shiftKey.value = false;
   }
 }
 onMounted(async () => {
   await startUp();
-  scroll.value?.children[scroll.value?.children.length - 1].scrollIntoView();
+  if (scroll.value!.children.length > 1)
+    scroll.value?.children[scroll.value?.children.length - 1].scrollIntoView();
   document.addEventListener('keydown', watchShiftDown);
   document.addEventListener('keyup', watchShiftUp);
 })

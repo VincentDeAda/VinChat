@@ -6,9 +6,15 @@ interface Author {
   id: string,
   username: string
 }
+interface UserInfo {
+  id: string,
+  username: string
+}
 interface Message {
   id: string,
   message: string,
   author: Author,
-  date: DateTime
+  date: Date,
+  isEdited: boolean,
+  lastEditDate?: Date
 }

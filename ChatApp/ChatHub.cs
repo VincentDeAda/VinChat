@@ -1,6 +1,7 @@
 ﻿using ChatApp.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using System.Security.Claims;
 
@@ -43,7 +44,7 @@ public class ChatHub : Hub
         var i = await _db.AddAsync(msg);
         await _db.SaveChangesAsync();
         await i.Reference(x => x.Author).LoadAsync();
-        await Clients.All.SendAsync("MessageReceived", new MessageResponse(msg.Id, msg.MessageContent, msg.Date, new(msg.Author.Id, msg.Author.Username)));
+        await Clients.All.SendAsync("MessageReceived", new MessageResponse(msg.Id, msg.MessageContent, msg.Date, new(msg.Author.Id, msg.Author.Username), null, false));
     }
     public async Task RemoveMessage(Guid messageId)
     {
@@ -58,4 +59,25 @@ public class ChatHub : Hub
 
     }
 
+    public async Task UpdateMessage(Guid messageId, string newContent)
+    {
+        var msg = await _db.Messages.Include(x => x.EditHistroy).Include(x=>x.Author).FirstOrDefaultAsync(x => x.Id == messageId);
+        var authorId = Guid.Parse(Context.User!.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        if (msg is default(Message) || authorId != msg.AuthorId)
+            return;
+
+        var msgEdit = new MessageEdit()
+        {
+            MessageId = messageId,
+            OldMessage = msg.MessageContent,
+        };
+        msg.EditHistroy.Add(msgEdit);
+        msg.MessageContent = newContent;
+        msg.LastEditDate = DateTime.UtcNow;
+        _db.Update(msg);
+
+        await _db.SaveChangesAsync();
+        await Clients.All.SendAsync("MessageUpdated",
+            new MessageResponse(msg.Id, newContent, msg.Date, new AuthorResponse(msg.AuthorId, msg.Author.Username), msg.LastEditDate, msg.IsEdited));
+    }
 }

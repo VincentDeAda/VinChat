@@ -8,10 +8,10 @@ const connection = new HubConnectionBuilder()
 const online = ref(0)
 const events = {
   MessageReceived: (incomingMessage: Message) => {
-    console.log(incomingMessage);
   },
   OnlineMemberCountChanged: (count: number) => online.value = count,
-  MessageRemoved: (id: string) => { }
+  MessageRemoved: (id: string) => { },
+  MessageUpdated: (newMsg: Message) => { }
 }
 const removeMessage = async (id: string) => {
   if (connection.state != HubConnectionState.Connected)
@@ -24,9 +24,16 @@ const sendMessage = async (message: string) => {
     return;
   await connection.invoke('SendMessage', message)
 }
+
+const updateMessage = async (messageId: string, newContent: string) => {
+  if (connection.state != HubConnectionState.Connected)
+    return;
+  await connection.invoke('UpdateMessage', messageId, newContent)
+}
 connection.on('MessageReceived', (e) => events.MessageReceived(e));
 connection.on('MessageRemoved', (e) => events.MessageRemoved(e));
 connection.on('UpdateOnline', (e) => events.OnlineMemberCountChanged(e));
+connection.on('MessageUpdated', (e) => events.MessageUpdated(e));
 
 
 
@@ -36,6 +43,7 @@ export default function () {
     startUp,
     sendMessage,
     removeMessage,
+    updateMessage,
     events,
     online
   }

@@ -1,13 +1,14 @@
 <script setup lang="ts">
 import axios from "axios";
-import { ref, onMounted, onBeforeMount, onUnmounted } from "vue";
+import { ref, onMounted, onBeforeMount, onUnmounted, provide } from "vue";
 
 import signalR from "../Store/useSignalR";
 import Message from "../components/Message.vue";
-const { online, startUp, sendMessage, events, removeMessage } = signalR();
+const { online, startUp, sendMessage, events, removeMessage, updateMessage } = signalR();
+const currentEdit = ref<Message>()
 const messages = ref<Message[]>(new Array<Message>())
 const user = ref();
-
+provide('UserInfo', user)
 let reachedEnd = false;
 events.MessageReceived = (e) => {
   messages.value.push(e)
@@ -24,6 +25,16 @@ const fetchMoreMessages = async () => {
       reachedEnd = true;
     data.forEach(message => messages.value.unshift(message as Message));
   });
+}
+
+
+events.MessageUpdated = (e) => {
+  const index = messages.value.findIndex(x => x.id = e.id);
+  if (index == -1)
+    return;
+  messages.value[index].message = e.message;
+  messages.value[index].lastEditDate = e.lastEditDate;
+  messages.value[index].isEdited = true;
 }
 events.MessageRemoved = (e) => {
   const index = messages.value?.findIndex(x => x.id == e)
@@ -67,6 +78,15 @@ const sendMsg = async () => {
 const removeMsg = async (id: string) => {
   await removeMessage(id)
 }
+const updateMsg = async () => {
+  await updateMessage(currentEdit.value!.id, tempMsg.value)
+  tempMsg.value = '';
+  currentEdit.value = undefined;
+}
+const requestEdit = (message: Message) => {
+  currentEdit.value = message;
+  tempMsg.value = message.message;
+}
 const scroll = ref<HTMLElement>()
 
 const onScroll = async (e: Event) => {
@@ -82,19 +102,29 @@ const isNew = (index: number, msg: Message) => {
 
   return msg.author.id != messages.value[index - 1].author.id;
 }
+const enterListener = async () => {
+  if (currentEdit.value != undefined) {
+    await updateMsg()
+  }
+  else
+    await sendMsg()
+}
 </script>
 
 <template>
   <div class="grid">
 
     <div @scroll="onScroll" class="msgs-container" ref="scroll">
-      <Message :isShifting="shiftKey" :key="msg.id" @delete="removeMsg" :msg="msg" :newMsg="isNew(index, msg)"
-        v-for="msg, index in messages" />
+
+      <Message @edit="requestEdit" :isShifting="shiftKey" :key="msg.id" @delete="removeMsg" :msg="msg"
+        :newMsg="isNew(index, msg)" v-for="msg, index in messages" />
 
     </div>
 
     <div class="inputContainer">
-      <input v-model="tempMsg" @keypress.enter="sendMsg" type="text" placeholder="your msgs">
+      <div v-if="currentEdit != undefined" class="edit">Edt Mode</div>
+      <input v-model="tempMsg" @keydown.esc="currentEdit = undefined" @keypress.enter="enterListener" type="text"
+        placeholder="your msgs">
     </div>
 
   </div>
@@ -107,11 +137,20 @@ const isNew = (index: number, msg: Message) => {
   overflow: hidden;
 }
 
+.edit {
+  width: 100%;
+  background-color: var(--darker-darker);
+  position: absolute;
+  top: 0;
+  transform: translateY(-100%);
+}
+
 .inputContainer {
   padding: 5px;
 }
 
 .inputContainer {
+  position: relative;
   min-height: min-content;
   max-height: 230px;
 }

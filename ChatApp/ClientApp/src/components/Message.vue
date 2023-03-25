@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { defineProps, ref, computed } from 'vue';
+import { defineProps, ref, computed, inject } from 'vue';
 const emits = defineEmits(['delete', 'edit'])
 const showActions = ref(false)
 
 const { isShifting } = defineProps<{ msg: Message, newMsg: boolean, isShifting: boolean }>()
 const isHover = ref(false);
 const show = computed(() => isHover && isShifting);
+const user = inject<UserInfo>('UserInfo')
 
 
 const toggle = ref<HTMLElement>();
@@ -15,10 +16,10 @@ const toggle = ref<HTMLElement>();
     <h4 v-if="newMsg">{{ msg.author.username }}:</h4>
     <div class="content">{{ msg.message }}</div>
     <div class="dropdown">
-      <button v-show="isHover && isShifting" @click.stop="showActions = !showActions" class="icon">...</button>
-      <div ref="toggle" :class="{ showOptions: show }" class="options">
+      <button v-show="isHover" @click.stop="showActions = !showActions" class="icon">...</button>
+      <div v-if="user?.id == msg.author.id" ref="toggle" :class="{ showOptions: isHover && isShifting }" class="options">
         <button @click="emits('delete', msg.id)">Delete</button>
-        <button @click="emits('edit')">Edit</button>
+        <button @click="emits('edit', msg)">Edit</button>
       </div>
     </div>
 

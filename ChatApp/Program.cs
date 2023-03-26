@@ -18,6 +18,7 @@ builder.Services.AddAuthentication("cookie").AddCookie("cookie", x =>
 builder.Services.AddSignalR();
 builder.Services.AddControllers();
 builder.Services.AddSingleton<IPasswordHasher<User>, BcryptPasswordHasher>();
+builder.Services.AddSingleton<IPasswordHasher<Identity>, BcryptPasswordHasher>();
 builder.Services.AddDbContext<ChatContext>();
 builder.Services.AddSpaStaticFiles(x =>
 {

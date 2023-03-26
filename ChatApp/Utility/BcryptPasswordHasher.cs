@@ -4,9 +4,9 @@ using Microsoft.AspNetCore.Identity;
 
 namespace ChatApp.Utility;
 
-public class BcryptPasswordHasher : IPasswordHasher<User>
+public class BcryptPasswordHasher : IPasswordHasher<Identity>
 {
-    public string HashPassword(User user, string password)
+    public string HashPassword(Identity user, string password)
     {
         string salt = Bcrypt.GenerateSalt();
         string hashedPassword = Bcrypt.HashPassword(password, salt);
@@ -15,7 +15,7 @@ public class BcryptPasswordHasher : IPasswordHasher<User>
         return hashedPassword;
     }
 
-    public PasswordVerificationResult VerifyHashedPassword(User user, string hashedPassword, string providedPassword)
+    public PasswordVerificationResult VerifyHashedPassword(Identity user, string hashedPassword, string providedPassword)
     {
         bool verfied = Bcrypt.Verify(providedPassword, hashedPassword);
         if (!verfied)

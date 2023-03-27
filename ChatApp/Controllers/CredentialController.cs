@@ -1,4 +1,5 @@
 ﻿using ChatApp.Models;
+using ChatApp.Services;
 using ChatApp.Utility;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
@@ -6,7 +7,10 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.ComponentModel.DataAnnotations;
 using System.Security.Claims;
+using System.Security.Cryptography;
+using System.Text;
 using System.Text.Json;
 
 namespace ChatApp.Controllers;
@@ -16,11 +20,13 @@ public class CredentialController : ControllerBase
 {
     private readonly ChatContext _db;
     private readonly IPasswordHasher<Identity> _hasher;
+    private readonly IEmailingService _emailing;
 
-    public CredentialController(ChatContext db, IPasswordHasher<User> hasher)
+    public CredentialController(ChatContext db, IPasswordHasher<Identity> hasher, IEmailingService emailing)
     {
         _db = db;
         _hasher = hasher;
+        _emailing = emailing;
     }
     [HttpGet("Verify"), Authorize]
     public IActionResult IsAuthenticated()
@@ -77,7 +83,7 @@ public class CredentialController : ControllerBase
         if (searchedMail is not default(Identity))
             return BadRequest("Email Already Used");
 
-        user = new User()
+        var user = new User()
         {
             Username = request.Username,
             Identity = new Identity()
@@ -96,6 +102,9 @@ public class CredentialController : ControllerBase
         await _db.AddAsync(user);
         await _db.AddAsync(confirmEmail);
         await _db.SaveChangesAsync();
+        await _emailing.SendConfirmationEmail(confirmEmail);
+
+
         return Ok();
     }
     [HttpPost("SignOut"), Authorize]

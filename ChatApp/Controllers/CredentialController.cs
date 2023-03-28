@@ -94,7 +94,7 @@ public class CredentialController : ControllerBase
         _hasher.HashPassword(user.Identity, request.Password);
         var confirmEmail = new EmailConfirmation()
         {
-            ConfirmationKey = Convert.ToBase64String(RandomNumberGenerator.GetBytes(64)).Replace("/", ".").Replace('+', '$'),
+            ConfirmationKey =IdentityHandler.GenerateConfirmationSecretKey(),
             IdentityUser = user.Identity,
             Email = request.Email,
         };

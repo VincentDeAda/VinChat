@@ -38,14 +38,14 @@ public class CredentialController : ControllerBase
     [HttpPost("SignIn"), AllowAnonymous]
     public async Task<IActionResult> Login(SignInRequest request)
     {
-        var isEmail = new EmailAddressAttribute().IsValid(request);
+        var isEmail = new EmailAddressAttribute().IsValid(request.Username);
         Identity? identity;
 
         if (isEmail)
-            identity = await _db.Identities.Include(x => x.User).FirstOrDefaultAsync(x => x.Email == request.EmailOrUsername.ToLower());
+            identity = await _db.Identities.Include(x => x.User).FirstOrDefaultAsync(x => x.Email == request.Username.ToLower());
         else
         {
-            var user = await _db.Users.Include(x => x.Identity).FirstOrDefaultAsync(x => x.Username == request.EmailOrUsername);
+            var user = await _db.Users.Include(x => x.Identity).FirstOrDefaultAsync(x => x.Username == request.Username);
             identity = user?.Identity;
         }
 
@@ -88,7 +88,7 @@ public class CredentialController : ControllerBase
             Username = request.Username,
             Identity = new Identity()
             {
-                Email = mail,
+                Email = mail
             }
         };
         _hasher.HashPassword(user.Identity, request.Password);
@@ -96,7 +96,7 @@ public class CredentialController : ControllerBase
         {
             ConfirmationKey =IdentityHandler.GenerateConfirmationSecretKey(),
             IdentityUser = user.Identity,
-            Email = request.Email,
+            Email = mail,
         };
 
         await _db.AddAsync(user);
@@ -113,7 +113,7 @@ public class CredentialController : ControllerBase
     [HttpGet("ConfirmEmail")]
     public async Task<IActionResult> ConfirmEmail([FromQuery] ConfirmEmailRequest request)
     {
-        var confirmation = await _db.EmailConfirmations.Include(x => x.IdentityUser).FirstOrDefaultAsync(x => x.Id == request.RequestId);
+        var confirmation = await _db.EmailConfirmations.Include(x => x.IdentityUser).FirstOrDefaultAsync(x => x.Id == request.Id);
         if (confirmation is default(EmailConfirmation)
             || confirmation.ExpirationDate < DateTime.UtcNow
             || confirmation.ConfirmationKey != request.Secretkey

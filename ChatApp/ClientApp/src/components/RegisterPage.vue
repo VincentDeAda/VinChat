@@ -4,12 +4,13 @@ import { computed, reactive, ref } from 'vue';
 import { useRouter } from 'vue-router';
 const router = useRouter();
 
-const user = reactive<LoginRequest>({
+const user = reactive<RegisterRequest>({
   username: "",
+  email: "",
   password: ""
 })
 const isValid = computed(() => {
-  return user.username.length > 4 && user.password.length > 6 && repeatedPassword.value == user.password
+  return user.username.length > 4 && user.password.length > 6 && repeatedPassword.value == user.password && user.email.length > 5
 });
 
 const errorMsg = ref("");
@@ -45,6 +46,7 @@ const repeatedPassword = ref('');
   <div class="form">
 
     <input v-model="user.username" placeholder="Username..." />
+    <input type="email" v-model="user.email" placeholder="Email..." />
     <input type="password" v-model="user.password" placeholder="Password..." />
     <input type="password" v-model="repeatedPassword" placeholder="Repeat Password..." />
     <p v-show="errorMsg.length > 0">{{ errorMsg }}</p>

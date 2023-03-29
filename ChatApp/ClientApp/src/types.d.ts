@@ -2,6 +2,9 @@ interface LoginRequest {
   username: string,
   password: string
 }
+interface RegisterRequest extends LoginRequest {
+  email: string
+}
 interface Author {
   id: string,
   username: string

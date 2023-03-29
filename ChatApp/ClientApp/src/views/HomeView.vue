@@ -1,14 +1,12 @@
 <script setup lang="ts">
 import axios from "axios";
-import { ref, onMounted, onBeforeMount, onUnmounted, provide } from "vue";
+import { ref, onMounted, onBeforeMount, onUnmounted } from "vue";
 
 import signalR from "../Store/useSignalR";
 import Message from "../components/Message.vue";
-const { online, startUp, sendMessage, events, removeMessage, updateMessage } = signalR();
-const currentEdit = ref<Message>()
+const { startUp, sendMessage, events, removeMessage, updateMessage } = signalR();
 const messages = ref<Message[]>(new Array<Message>())
 const user = ref();
-provide('UserInfo', user)
 let reachedEnd = false;
 events.MessageReceived = (e) => {
   messages.value.push(e)
@@ -29,7 +27,7 @@ const fetchMoreMessages = async () => {
 
 
 events.MessageUpdated = (e) => {
-  const index = messages.value.findIndex(x => x.id = e.id);
+  const index = messages.value.findIndex(x => x.id == e.id);
   if (index == -1)
     return;
   messages.value[index].message = e.message;
@@ -72,21 +70,19 @@ onUnmounted(() => {
 
 const tempMsg = ref('');
 const sendMsg = async () => {
-  await sendMessage(tempMsg.value)
+  const msg = tempMsg.value.trim()
+  if (msg.length >= 1)
+    await sendMessage(msg)
   tempMsg.value = '';
 }
 const removeMsg = async (id: string) => {
   await removeMessage(id)
 }
-const updateMsg = async () => {
-  await updateMessage(currentEdit.value!.id, tempMsg.value)
+const updateMsg = async (msg: Message, newMsg: string) => {
+  await updateMessage(msg.id, newMsg)
   tempMsg.value = '';
-  currentEdit.value = undefined;
 }
-const requestEdit = (message: Message) => {
-  currentEdit.value = message;
-  tempMsg.value = message.message;
-}
+
 const scroll = ref<HTMLElement>()
 
 const onScroll = async (e: Event) => {
@@ -102,13 +98,7 @@ const isNew = (index: number, msg: Message) => {
 
   return msg.author.id != messages.value[index - 1].author.id;
 }
-const enterListener = async () => {
-  if (currentEdit.value != undefined) {
-    await updateMsg()
-  }
-  else
-    await sendMsg()
-}
+
 </script>
 
 <template>
@@ -116,15 +106,14 @@ const enterListener = async () => {
 
     <div @scroll="onScroll" class="msgs-container" ref="scroll">
 
-      <Message @edit="requestEdit" :isShifting="shiftKey" :key="msg.id" @delete="removeMsg" :msg="msg"
-        :newMsg="isNew(index, msg)" v-for="msg, index in messages" />
+      <Message :isAuthor="msg.author.id == user.id" @edit="updateMsg" :isShifting="shiftKey" :key="msg.id"
+        @delete="removeMsg" :msg="msg" :newMsg="isNew(index, msg)" v-for="msg, index in messages" />
 
     </div>
 
     <div class="inputContainer">
-      <div v-if="currentEdit != undefined" class="edit">Edt Mode</div>
-      <input v-model="tempMsg" @keydown.esc="currentEdit = undefined" @keypress.enter="enterListener" type="text"
-        placeholder="your msgs">
+      <!-- <div v-if="currentEdit != undefined" class="edit">Edt Mode</div> -->
+      <input v-model="tempMsg" @keypress.enter="sendMsg" type="text" placeholder="your msgs">
     </div>
 
   </div>

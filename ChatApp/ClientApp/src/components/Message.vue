@@ -1,25 +1,30 @@
 <script setup lang="ts">
-import { defineProps, ref, computed, inject } from 'vue';
+import { defineProps, ref, watch } from 'vue';
 const emits = defineEmits(['delete', 'edit'])
 const showActions = ref(false)
-
-const { isShifting } = defineProps<{ msg: Message, newMsg: boolean, isShifting: boolean }>()
+const editMode = ref(false);
+const { isShifting, msg } = defineProps<{ msg: Message, newMsg: boolean, isShifting: boolean, isAuthor: boolean }>()
 const isHover = ref(false);
-const show = computed(() => isHover && isShifting);
-const user = inject<UserInfo>('UserInfo')
+const editedMessage = ref(msg.message)
+watch(() => editMode, () => editedMessage.value = msg.message);
+const submitEdit = () => {
+  emits('edit', msg, editedMessage.value)
+  editMode.value = false;
 
-
-const toggle = ref<HTMLElement>();
+}
 </script>
 <template >
   <div @mouseenter="isHover = true" @mouseleave="isHover = false" class="message">
-    <h4 v-if="newMsg">{{ msg.author.username }}:</h4>
-    <div class="content">{{ msg.message }}</div>
+    <h4 v-if="newMsg"> {{ msg.author.username }}:</h4>
+    <div v-if="!editMode" class="content"> {{ msg.message }}</div>
+    <input @keydown.esc="editMode = false" @keypress.enter="submitEdit" v-else type="text" v-model="editedMessage">
     <div class="dropdown">
-      <button v-show="isHover" @click.stop="showActions = !showActions" class="icon">...</button>
-      <div v-if="user?.id == msg.author.id" ref="toggle" :class="{ showOptions: isHover && isShifting }" class="options">
-        <button @click="emits('delete', msg.id)">Delete</button>
-        <button @click="emits('edit', msg)">Edit</button>
+      <div v-if="isAuthor" v-show="(isShifting && isHover) || editMode" class="options">
+        <button v-if="!editMode" @click="emits('delete', msg.id)">Delete</button>
+        <button v-else @click="submitEdit">Edit</button>
+
+        <button v-if="!editMode" @click="editMode = true">Edit</button>
+        <button v-else @click="editMode = false">Cancel</button>
       </div>
     </div>
 
@@ -50,24 +55,24 @@ h4 {
 
 
 
-.dropdown {
+/* .dropdown {
   visibility: hidden;
   position: absolute;
   top: 0;
   right: 10px;
-}
+} */
 
 .message:hover .dropdown {
   visibility: visible;
 
 }
 
-.options {
+/* .options {
   visibility: hidden;
   position: absolute;
   top: 0;
   right: 0;
-}
+} */
 
 
 .showOptions {

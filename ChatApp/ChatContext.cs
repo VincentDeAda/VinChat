@@ -9,6 +9,7 @@ public class ChatContext : DbContext
     public DbSet<User> Users { get; set; }
     public DbSet<Message> Messages { get; set; }
     public DbSet<MessageEdit> EditHistory { get; set; } = null!;
+    public DbSet<RemovedMessage> RemovedMessages { get; set; } = null!;
     public DbSet<EmailConfirmation> EmailConfirmations { get; set; } = null!;
     public ChatContext() : base() => Database.EnsureCreated();
 

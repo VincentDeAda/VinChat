@@ -140,7 +140,7 @@ public class CredentialController : ControllerBase
     [HttpGet("FetchMessages"), Authorize]
     public async Task<IActionResult> FetchMessages([FromQuery] int skip = 0)
     {
-        var msgs = await _db.Messages.Include(x => x.Author).OrderByDescending(x => x.Date).Where(x => !x.Removed).Skip(skip).Take(50).Select(x => new MessageResponse(x.Id, x.MessageContent, x.Date, new AuthorResponse(x.Author.Id, x.Author.Username), x.LastEditDate, x.IsEdited)).Reverse().ToListAsync();
+        var msgs = await _db.Messages.Include(x => x.Author).OrderByDescending(x => x.Date).Skip(skip).Take(50).Select(x => new MessageResponse(x.Id, x.MessageContent, x.Date, new AuthorResponse(x.Author.Id, x.Author.Username), x.LastEditDate, x.IsEdited)).Reverse().ToListAsync();
         if (msgs.Count == 0)
             return NoContent();
         return Ok(msgs);

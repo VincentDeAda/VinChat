@@ -2,9 +2,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Infrastructure;
 using System.Security.Claims;
-
 namespace ChatApp;
 
 [Authorize]
@@ -52,7 +50,13 @@ public class ChatHub : Hub
         var message = await _db.FindAsync<Message>(messageId);
         if (message is default(Message) || message.AuthorId != caller)
             return;
-
+        _db.RemovedMessages.Add(new RemovedMessage()
+        {
+            Id = message.Id,
+            AuthorId= message.AuthorId,
+            Message=message.MessageContent,
+            Date = message.Date,
+        });
         _db.Remove(message);
         await _db.SaveChangesAsync();
         await Clients.All.SendAsync("MessageRemoved", messageId);

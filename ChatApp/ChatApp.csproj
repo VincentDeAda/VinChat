@@ -5,6 +5,7 @@
 		<Nullable>enable</Nullable>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<TypeScriptCompileBlocked>true</TypeScriptCompileBlocked>
+		<UserSecretsId>2297b37e-d123-4d9a-b1fa-1956b078a251</UserSecretsId>
 	</PropertyGroup>
 
 	<ItemGroup>

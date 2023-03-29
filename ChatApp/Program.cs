@@ -18,7 +18,10 @@ builder.Services.AddAuthentication("cookie").AddCookie("cookie", x =>
 });
 builder.Services.AddSignalR();
 builder.Services.AddControllers();
-builder.Services.AddSingleton<IEmailingService,EmailingService>();
+if (builder.Environment.IsDevelopment())
+    builder.Services.AddSingleton<IEmailingService, EmailServiceMock>();
+else 
+    builder.Services.AddSingleton<IEmailingService, EmailingService>();
 builder.Services.AddSingleton<IPasswordHasher<Identity>, BcryptPasswordHasher>();
 builder.Services.AddDbContext<ChatContext>();
 builder.Services.AddSpaStaticFiles(x =>

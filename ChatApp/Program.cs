@@ -24,6 +24,7 @@ else
     builder.Services.AddSingleton<IEmailingService, EmailingService>();
 builder.Services.AddSingleton<IPasswordHasher<Identity>, BcryptPasswordHasher>();
 builder.Services.AddDbContext<ChatContext>();
+builder.Services.AddSingleton<IMapper,Mapper>();
 builder.Services.AddSpaStaticFiles(x =>
 {
     x.RootPath = "ClientApp/dist";

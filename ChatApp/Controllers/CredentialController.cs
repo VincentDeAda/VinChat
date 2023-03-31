@@ -21,12 +21,14 @@ public class CredentialController : ControllerBase
     private readonly ChatContext _db;
     private readonly IPasswordHasher<Identity> _hasher;
     private readonly IEmailingService _emailing;
+    private readonly IMapper _mapper;
 
-    public CredentialController(ChatContext db, IPasswordHasher<Identity> hasher, IEmailingService emailing)
+    public CredentialController(ChatContext db, IPasswordHasher<Identity> hasher, IEmailingService emailing, IMapper mapper)
     {
         _db = db;
         _hasher = hasher;
         _emailing = emailing;
+        _mapper = mapper;
     }
     [HttpGet("Verify"), Authorize]
     public IActionResult IsAuthenticated()
@@ -140,10 +142,10 @@ public class CredentialController : ControllerBase
     [HttpGet("FetchMessages"), Authorize]
     public async Task<IActionResult> FetchMessages([FromQuery] int skip = 0)
     {
-        var msgs = await _db.Messages.Include(x => x.Author).OrderByDescending(x => x.Date).Skip(skip).Take(50).Select(x => new MessageResponse(x.Id, x.MessageContent, x.Date, new AuthorResponse(x.Author.Id, x.Author.Username), x.LastEditDate, x.IsEdited)).Reverse().ToListAsync();
+        var msgs = await _db.Messages.Include(x => x.Author).OrderByDescending(x => x.Date).Skip(skip).Take(50).Reverse().ToListAsync();
         if (msgs.Count == 0)
             return NoContent();
-        return Ok(msgs);
+        return Ok(_mapper.MapMessages(msgs));
     }
 
 

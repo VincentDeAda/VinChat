@@ -1,4 +1,5 @@
 ﻿using ChatApp.Models;
+using ChatApp.Utility;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
@@ -11,10 +12,12 @@ public class ChatHub : Hub
 
     public static readonly Dictionary<string, string> connectedUsers = new();
     private readonly ChatContext _db;
+    private readonly IMapper _mapper;
 
-    public ChatHub(ChatContext db) : base()
+    public ChatHub(ChatContext db, IMapper mapper) : base()
     {
         _db = db;
+        _mapper = mapper;
     }
 
     public override async Task OnConnectedAsync()
@@ -42,21 +45,16 @@ public class ChatHub : Hub
         var i = await _db.AddAsync(msg);
         await _db.SaveChangesAsync();
         await i.Reference(x => x.Author).LoadAsync();
-        await Clients.All.SendAsync("MessageReceived", new MessageResponse(msg.Id, msg.MessageContent, msg.Date, new(msg.Author.Id, msg.Author.Username), null, false));
+        await Clients.All.SendAsync("MessageReceived", _mapper.MapMessage(msg), null, false);
     }
+
     public async Task RemoveMessage(Guid messageId)
     {
         var caller = Guid.Parse(Context.User!.FindFirstValue(ClaimTypes.NameIdentifier)!);
         var message = await _db.FindAsync<Message>(messageId);
         if (message is default(Message) || message.AuthorId != caller)
             return;
-        _db.RemovedMessages.Add(new RemovedMessage()
-        {
-            Id = message.Id,
-            AuthorId= message.AuthorId,
-            Message=message.MessageContent,
-            Date = message.Date,
-        });
+        _db.RemovedMessages.Add(_mapper.MapRemovedMessage(message));
         _db.Remove(message);
         await _db.SaveChangesAsync();
         await Clients.All.SendAsync("MessageRemoved", messageId);
@@ -65,23 +63,18 @@ public class ChatHub : Hub
 
     public async Task UpdateMessage(Guid messageId, string newContent)
     {
-        var msg = await _db.Messages.Include(x => x.EditHistroy).Include(x=>x.Author).FirstOrDefaultAsync(x => x.Id == messageId);
+        var msg = await _db.Messages.Include(x => x.EditHistroy).Include(x => x.Author).FirstOrDefaultAsync(x => x.Id == messageId);
         var authorId = Guid.Parse(Context.User!.FindFirstValue(ClaimTypes.NameIdentifier)!);
         if (msg is default(Message) || authorId != msg.AuthorId)
             return;
 
-        var msgEdit = new MessageEdit()
-        {
-            MessageId = messageId,
-            OldMessage = msg.MessageContent,
-        };
+        var msgEdit = _mapper.MapMessageEdit(msg);
         msg.EditHistroy.Add(msgEdit);
         msg.MessageContent = newContent;
         msg.LastEditDate = DateTime.UtcNow;
         _db.Update(msg);
 
         await _db.SaveChangesAsync();
-        await Clients.All.SendAsync("MessageUpdated",
-            new MessageResponse(msg.Id, newContent, msg.Date, new AuthorResponse(msg.AuthorId, msg.Author.Username), msg.LastEditDate, msg.IsEdited));
+        await Clients.All.SendAsync("MessageUpdated",_mapper.MapMessage(msg));
     }
 }

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { computed } from '@vue/reactivity';
 import { defineProps, ref, watch } from 'vue';
 const emits = defineEmits(['delete', 'edit'])
 const showActions = ref(false)
@@ -12,10 +13,14 @@ const submitEdit = () => {
   editMode.value = false;
 
 }
+const splittedMsg = computed(() => msg.message.split('\n'));
 </script>
 <template >
   <div @mouseenter="isHover = true" @mouseleave="isHover = false" class="message">
     <h4 v-if="newMsg"> {{ msg.author.username }}:</h4>
+    <div v-if="!editMode" class="content"> <span v-for="line, index in splittedMsg">{{ line }} <span class="edit"
+          v-if="msg.isEdited && index == splittedMsg.length - 1">edited</span></span>
+    </div>
     <textarea @keydown.esc="editMode = false" @keypress.enter.exact="submitEdit" v-else type="text"
       v-model="editedMessage"></textarea>
     <div class="dropdown">
@@ -46,7 +51,9 @@ textarea {
 }
 
 .content {
-  padding: 5px 10px;
+  display: flex;
+  flex-direction: column;
+  padding: 2px 10px;
 
 }
 
@@ -58,6 +65,11 @@ h4 {
   font-weight: bold;
 }
 
+.edit {
+  user-select: none;
+  font-size: 0.5rem;
+  font-style: italic;
+}
 
 
 /* .dropdown {

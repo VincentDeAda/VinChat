@@ -72,6 +72,7 @@ public class ChatHub : Hub
         msg.EditHistroy.Add(msgEdit);
         msg.MessageContent = newContent;
         msg.LastEditDate = DateTime.UtcNow;
+        msg.IsEdited= true;
         _db.Update(msg);
 
         await _db.SaveChangesAsync();

@@ -22,14 +22,17 @@ const invoke = async (methodName: string, ...args: any[]) => {
     return;
   await connection.invoke(methodName, ...args)
 }
-connection.on('MessageReceived', (e) => events.MessageReceived(e));
-connection.on('MessageRemoved', (e) => events.MessageRemoved(e));
-connection.on('UpdateOnline', (e) => events.OnlineMemberCountChanged(e));
-connection.on('MessageUpdated', (e) => events.MessageUpdated(e));
 
 
 
-const startUp = async () => await connection.start();
+const startUp = async () => {
+  connection.on('MessageReceived', events.MessageReceived);
+  connection.on('MessageRemoved', events.MessageRemoved);
+  connection.on('UpdateOnline', events.OnlineMemberCountChanged);
+  connection.on('MessageUpdated', events.MessageUpdated);
+
+  return await connection.start();
+};
 export default function () {
   return {
     startUp,

@@ -16,8 +16,8 @@ const submitEdit = () => {
 <template >
   <div @mouseenter="isHover = true" @mouseleave="isHover = false" class="message">
     <h4 v-if="newMsg"> {{ msg.author.username }}:</h4>
-    <div v-if="!editMode" class="content"> {{ msg.message }}</div>
-    <input @keydown.esc="editMode = false" @keypress.enter="submitEdit" v-else type="text" v-model="editedMessage">
+    <textarea @keydown.esc="editMode = false" @keypress.enter.exact="submitEdit" v-else type="text"
+      v-model="editedMessage"></textarea>
     <div class="dropdown">
       <div v-if="isAuthor" v-show="(isShifting && isHover) || editMode" class="options">
         <button v-if="!editMode" @click="emits('delete', msg.id)">Delete</button>
@@ -34,6 +34,11 @@ const submitEdit = () => {
 .message {
   position: relative;
   padding: 5px;
+}
+
+textarea {
+  width: 95%;
+  height: max-content;
 }
 
 .message:hover {

@@ -12,7 +12,8 @@ button {
 
 }
 
-input {
+input, textarea {
+  resize: none;
   background-color: var(--darker-darker);
   border: 1px solid var(--text-main);
   color: var(--text-main);
@@ -23,8 +24,8 @@ input {
 }
 
 
-input:focus {
-    border-radius: 0;
+input:focus, textarea:focus {
+  border-radius: 0;
   outline: none;
 }
 

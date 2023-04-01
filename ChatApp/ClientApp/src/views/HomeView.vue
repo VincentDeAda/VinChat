@@ -113,7 +113,7 @@ const isNew = (index: number, msg: Message) => {
 
     <div class="inputContainer">
       <!-- <div v-if="currentEdit != undefined" class="edit">Edt Mode</div> -->
-      <input v-model="tempMsg" @keypress.enter="sendMsg" type="text" placeholder="your msgs">
+      <textarea v-model="tempMsg" @keydown.enter.exact="sendMsg" type="text" placeholder="your msgs"></textarea>
     </div>
 
   </div>
@@ -144,7 +144,7 @@ const isNew = (index: number, msg: Message) => {
   max-height: 230px;
 }
 
-input {
+textarea {
   height: 100%;
   width: 100%;
   border-radius: 0;

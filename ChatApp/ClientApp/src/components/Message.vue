@@ -18,8 +18,12 @@ const splittedMsg = computed(() => msg.message.split('\n'));
 <template >
   <div @mouseenter="isHover = true" @mouseleave="isHover = false" class="message">
     <h4 v-if="newMsg"> {{ msg.author.username }}:</h4>
-    <div v-if="!editMode" class="content"> <span v-for="line, index in splittedMsg">{{ line }} <span class="edit"
-          v-if="msg.isEdited && index == splittedMsg.length - 1">edited</span></span>
+    <div v-if="!editMode" class="content"> <span v-for="line, index in splittedMsg">{{ line }} <span class="edit tooltip"
+          v-if="msg.isEdited && index == splittedMsg.length - 1">edited <span class="tooltip-text">{{
+            msg.lastEditDate!.toString()
+          }}</span></span>
+
+      </span>
     </div>
     <textarea @keydown.esc="editMode = false" @keypress.enter.exact="submitEdit" v-else type="text"
       v-model="editedMessage"></textarea>

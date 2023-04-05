@@ -92,11 +92,24 @@ const onScroll = async (e: Event) => {
     await fetchMoreMessages();
 }
 const isNew = (index: number, msg: Message) => {
-
+  //checking if the msg is first msg.
   if (index == 0)
     return true;
+  const olderMsg = messages.value[index - 1];
+  //checking if author the author is different
+  if (olderMsg.author.id != msg.author.id)
+    return true;
 
-  return msg.author.id != messages.value[index - 1].author.id;
+
+  const olderMsgDate = new Date(olderMsg.date);
+  const newerMsgDate = new Date(msg.date);
+
+
+  //comparing dates and hours.
+  if (newerMsgDate.getDate() > olderMsgDate.getDate())
+    return true;
+
+  return newerMsgDate.getHours() > olderMsgDate.getHours();
 }
 
 </script>

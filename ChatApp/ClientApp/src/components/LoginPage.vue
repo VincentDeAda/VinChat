@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router';
 import { computed, reactive, ref } from 'vue';
+import useCredentials from '@/Store/useCredentials';
 import axios from 'axios'
 const router = useRouter();
-
+const { fetchUserInfo, verify } = useCredentials();
 const user = reactive<LoginRequest>({
   username: "",
   password: ""
@@ -19,8 +20,10 @@ const submit = async () => {
       "Content-Type": "application/json"
     },
     withCredentials: true
-  }).then(function (x) {
+  }).then(async function (x) {
     if (x.status == 200) {
+      await fetchUserInfo()
+      await verify();
       router.push('/');
 
     }

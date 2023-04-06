@@ -3,15 +3,16 @@ import axios from "axios";
 import { ref, onMounted, onBeforeMount, onUnmounted } from "vue";
 
 import signalR from "../Store/useSignalR";
+import useCredentials from "../Store/useCredentials";
 import Message from "../components/Message.vue";
 const { startUp, sendMessage, events, removeMessage, updateMessage } = signalR();
 const messages = ref<Message[]>(new Array<Message>())
-const user = ref();
 let reachedEnd = false;
 events.MessageReceived = (e) => {
   messages.value.push(e)
 
 };
+const { fetchUserInfo, verify, credentials } = useCredentials()
 const fetchMoreMessages = async () => {
   axios.get(`/api/FetchMessages?skip=${messages.value.length}`).then(x => {
     if (x.status == 204) {
@@ -41,8 +42,9 @@ events.MessageRemoved = (e) => {
 }
 const shiftKey = ref(false);
 
-onBeforeMount(() => {
-  axios.get('/api/FetchUserInfo').then(x => user.value = x.data);
+onBeforeMount(async () => {
+  await fetchUserInfo();
+  await verify();
   axios.get('/api/FetchMessages').then(x => Array.from((x.data)).forEach(y => messages.value.push(y as Message)));
 })
 const watchShiftDown = (e: KeyboardEvent) => {
@@ -119,7 +121,7 @@ const isNew = (index: number, msg: Message) => {
 
     <div @scroll="onScroll" class="msgs-container" ref="scroll">
 
-      <Message :isAuthor="msg.author.id == user.id" @edit="updateMsg" :isShifting="shiftKey" :key="msg.id"
+      <Message :isAuthor="msg.author.id == credentials.id" @edit="updateMsg" :isShifting="shiftKey" :key="msg.id"
         @delete="removeMsg" :msg="msg" :newMsg="isNew(index, msg)" v-for="msg, index in messages" />
 
     </div>

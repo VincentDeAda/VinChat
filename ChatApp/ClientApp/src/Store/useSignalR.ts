@@ -3,7 +3,7 @@ import { ref } from "vue";
 const connection = new HubConnectionBuilder()
   .withAutomaticReconnect()
   .withUrl('/chat')
-  // .configureLogging(LogLevel.None)
+  .configureLogging(LogLevel.Error)
   .build();
 
 const online = ref(0)

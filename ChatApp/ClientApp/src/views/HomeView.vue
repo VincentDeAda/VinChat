@@ -121,7 +121,7 @@ const isNew = (index: number, msg: Message) => {
 
     <div @scroll="onScroll" class="msgs-container" ref="scroll">
 
-      <Message :isAuthor="msg.author.id == credentials.id" @edit="updateMsg" :isShifting="shiftKey" :key="msg.id"
+      <Message :isAuthor="msg.author.id == credentials.id" :index="index" @edit="updateMsg" :isShifting="shiftKey" :key="msg.id"
         @delete="removeMsg" :msg="msg" :newMsg="isNew(index, msg)" v-for="msg, index in messages" />
 
     </div>
